@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 using school.Models;
 using Newtonsoft.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
 
 namespace school
 {
@@ -34,10 +35,21 @@ namespace school
                 if(resolver!=null)
                     (resolver as DefaultContractResolver).NamingStrategy = null;
             }); 
-            services.AddDbContext<TeacherContext>(options => {
+            services.AddDbContext<AuthenticationContext>( options =>{
                 options.UseSqlServer(Configuration.GetConnectionString("DevConnection"));
-            });
+            }); 
+            services.AddDefaultIdentity<User>()
+            .AddEntityFrameworkStores<AuthenticationContext>();
             services.AddCors();
+
+            services.Configure<IdentityOptions> (options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 4;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,6 +69,7 @@ namespace school
                 .AllowAnyMethod()
                 .AllowAnyHeader();
             });
+            app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseMvc();
         }
